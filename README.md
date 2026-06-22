@@ -85,5 +85,5 @@ Long-form articles explaining what I've learned:
 
 ---
 
-_Maintained by [Delleon](https://github.com/<your-username>). Open to feedback —
+_Maintained by [Delleon](https://github.com/DelleonMcglone). Open to feedback —
 issues and discussions welcome._
