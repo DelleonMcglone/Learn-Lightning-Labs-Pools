@@ -1,0 +1,44 @@
+# Secrets & credentials
+.env
+.env.*
+*.pem
+*.key
+*.macaroon
+admin.macaroon
+*.cert
+tls.cert
+tls.key
+
+# Lightning / Bitcoin data
+*.wallet
+wallet.db
+channel.backup
+data/
+.lnd/
+.bitcoin/
+.pool/
+.loop/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Build / deps
+node_modules/
+dist/
+build/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Tooling
+repomix-output.txt
+
+# Logs
+*.log
