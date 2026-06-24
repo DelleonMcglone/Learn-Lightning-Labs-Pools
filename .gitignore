@@ -28,6 +28,9 @@ Thumbs.db
 .idea/
 *.swp
 
+# Local tool settings
+.claude/settings.local.json
+
 # Build / deps
 node_modules/
 dist/
