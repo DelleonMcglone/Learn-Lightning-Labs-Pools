@@ -257,7 +257,8 @@ configured here:
 - `bitcoind.zmqpubrawblock=tcp://127.0.0.1:28332`
 - `bitcoind.zmqpubrawtx=tcp://127.0.0.1:28333`
 
-See [`lnd.md`](./lnd.md) _(coming next)_.
+This wiring is complete and verified — see [`lnd.md`](./lnd.md) for the full LND
+install, configuration, and connection log.
 
 ---
 

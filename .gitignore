@@ -45,3 +45,6 @@ repomix-output.txt
 
 # Logs
 *.log
+
+# Local live-preview dashboard (transient)
+.preview/
