@@ -21,6 +21,7 @@ proof of work, and build toward contributing to the Lightning ecosystem.
 - [01 — Bitcoin Fundamentals](./01-bitcoin-fundamentals.md) — architecture, UTXOs, wallets, transactions
 - [02 — Lightning Fundamentals](./02-lightning-fundamentals.md) — channels, HTLCs, liquidity glossary
 - [03 — Lightning Liquidity](./03-lightning-liquidity.md) — inbound capacity, merchant liquidity, LSPs
+- [04 — Pool: Auctions & Lease Pricing](./04-pool-auctions-lease-pricing.md) — sealed-bid batch auctions, ppb rates, lease economics
 
 ### Hands-on Setup
 

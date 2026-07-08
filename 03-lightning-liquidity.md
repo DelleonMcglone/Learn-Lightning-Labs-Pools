@@ -265,4 +265,5 @@ Lightning Pool, via **sidecar channels**) rather than opening them itself.
 ---
 
 _Part of [Lightning Labs Prep](./README.md). Previous:
-[02 — Lightning Fundamentals](./02-lightning-fundamentals.md)._
+[02 — Lightning Fundamentals](./02-lightning-fundamentals.md). Next:
+[04 — Pool: Auctions & Lease Pricing](./04-pool-auctions-lease-pricing.md)._
