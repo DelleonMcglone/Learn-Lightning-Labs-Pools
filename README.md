@@ -48,7 +48,7 @@ Long-form articles explaining what I've learned:
 
 - [What Is a Lightning Pool? A Beginner's Guide to the Liquidity Marketplace](./writing/what-is-lightning-pool.md) — the inbound-liquidity problem, LCLs, and the sealed-bid batch auction
 - [How Lightning Liquidity Works: A Beginner's Guide to Moving Money on Lightning](./writing/how-lightning-liquidity-works.md) — inbound vs. outbound, the channel seesaw, rebalancing and fees
-- *How Pool Solves Inbound Liquidity* — _coming soon_
+- [How Pool Solves Inbound Liquidity: Turning a Scramble Into a Marketplace](./writing/how-pool-solves-inbound-liquidity.md) — LCLs, premium vs. principal, and why the market actually fixes the problem
 
 ### Project
 
@@ -63,7 +63,7 @@ Long-form articles explaining what I've learned:
 - [ ] **Environment** — Bitcoin Core + LND running and synced
 - [x] **Pool** — operational locally, connected to LND, first transaction logged
 - [ ] **Source-code analysis** — Pool, LND, Loop, Faraday summaries published
-- [ ] **Writing** — 3+ technical articles published
+- [x] **Writing** — 3+ technical articles published
 - [ ] **Project** — AI Liquidity Advisor MVP deployed with demo video
 - [ ] **Open source** — 1 merged docs PR, 1 submitted code PR
 
