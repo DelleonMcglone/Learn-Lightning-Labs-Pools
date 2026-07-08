@@ -1,6 +1,6 @@
 # What Is a Lightning Pool? A Beginner's Guide to the Liquidity Marketplace ⚡🏊
 
-_By Delleon McGlone 
+By Delleon McGlone 
 
 If you've spent any time running a Lightning node, you've bumped into the same
 wall almost everyone does: you set up your wallet, open a channel, and then
