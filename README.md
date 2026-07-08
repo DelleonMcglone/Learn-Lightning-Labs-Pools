@@ -47,7 +47,7 @@ proof of work, and build toward contributing to the Lightning ecosystem.
 Long-form articles explaining what I've learned:
 
 - [What Is a Lightning Pool? A Beginner's Guide to the Liquidity Marketplace](./writing/what-is-lightning-pool.md) — the inbound-liquidity problem, LCLs, and the sealed-bid batch auction
-- *How Lightning Liquidity Works* — _coming soon_
+- [How Lightning Liquidity Works: A Beginner's Guide to Moving Money on Lightning](./writing/how-lightning-liquidity-works.md) — inbound vs. outbound, the channel seesaw, rebalancing and fees
 - *How Pool Solves Inbound Liquidity* — _coming soon_
 
 ### Project
