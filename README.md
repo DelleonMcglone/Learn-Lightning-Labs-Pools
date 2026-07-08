@@ -22,6 +22,7 @@ proof of work, and build toward contributing to the Lightning ecosystem.
 - [02 — Lightning Fundamentals](./02-lightning-fundamentals.md) — channels, HTLCs, liquidity glossary
 - [03 — Lightning Liquidity](./03-lightning-liquidity.md) — inbound capacity, merchant liquidity, LSPs
 - [04 — Pool: Auctions & Lease Pricing](./04-pool-auctions-lease-pricing.md) — sealed-bid batch auctions, ppb rates, lease economics
+- [05 — Pool: Observations from Running It Live](./05-pool-observations.md) — hands-on findings, theory vs. practice, L402 debugging
 
 ### Hands-on Setup
 

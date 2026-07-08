@@ -267,4 +267,5 @@ client-side validation — effectively the auction's public contract:
 ---
 
 _Part of [Lightning Labs Prep](./README.md). Previous:
-[03 — Lightning Liquidity](./03-lightning-liquidity.md)._
+[03 — Lightning Liquidity](./03-lightning-liquidity.md). Next:
+[05 — Pool: Observations from Running It Live](./05-pool-observations.md)._

@@ -318,4 +318,5 @@ depth, and the last public batch:
 ---
 
 _Part of [Lightning Labs Prep](../README.md). Previous:
-[Lightning operations](./operations.md)._
+[Lightning operations](./operations.md). Distilled observations:
+[05 — Pool: Observations from Running It Live](../05-pool-observations.md)._
