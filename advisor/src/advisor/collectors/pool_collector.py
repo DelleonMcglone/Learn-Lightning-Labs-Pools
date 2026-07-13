@@ -15,7 +15,7 @@ import json
 import subprocess
 from typing import Optional
 
-from ..models import PoolDepth, PoolMarket
+from ..models import PoolDepth, PoolMarket, PoolOrder
 
 
 def _run_pool(pool_bin: str, network: str, args: list, timeout: float = 15.0
@@ -63,12 +63,48 @@ def parse_clearing_rates(snapshot: list) -> dict:
     return rates
 
 
+def parse_account_available(accounts: Optional[dict]) -> int:
+    """accounts list → total available sats across OPEN accounts."""
+    total = 0
+    for acct in (accounts or {}).get("accounts", []):
+        if acct.get("state") == "OPEN":
+            total += int(acct.get("available_balance", acct.get("value", 0)))
+    return total
+
+
+# Order states that still rest on the book.
+_ACTIVE_ORDER_STATES = {"ORDER_SUBMITTED", "ORDER_PARTIALLY_FILLED"}
+
+
+def parse_own_orders(orders: Optional[dict]) -> list:
+    """orders list → our active resting orders (bids + asks)."""
+    result = []
+    for side in ("bids", "asks"):
+        for o in (orders or {}).get(side, []):
+            details = o.get("details", {})
+            if details.get("state") not in _ACTIVE_ORDER_STATES:
+                continue
+            result.append(
+                PoolOrder(
+                    side=side[:-1],
+                    amt_sat=int(details.get("amt", 0)),
+                    rate_ppb=int(details.get("rate_fixed", 0)),
+                    duration_blocks=int(o.get("lease_duration_blocks", 0)),
+                    state=details.get("state", ""),
+                    units=int(details.get("units", 0)),
+                )
+            )
+    return result
+
+
 def build_pool_market(
     fee: Optional[dict],
     durations: Optional[dict],
     next_batch: Optional[dict],
     info: Optional[dict],
     snapshot: Optional[list],
+    accounts: Optional[dict] = None,
+    orders: Optional[dict] = None,
 ) -> PoolMarket:
     """Assemble a PoolMarket from raw CLI payloads (any may be None)."""
     if info is None and fee is None:
@@ -87,6 +123,8 @@ def build_pool_market(
         next_batch_clear_unix=int((next_batch or {}).get("clear_timestamp", 0)),
         depth=parse_depth((info or {}).get("market_info", {})),
         last_clearing_rate_ppb=parse_clearing_rates(snapshot or []),
+        account_available_sat=parse_account_available(accounts),
+        own_orders=parse_own_orders(orders),
     )
 
 
@@ -103,4 +141,6 @@ def collect_pool_market(pool_bin: str, network: str) -> PoolMarket:
         next_batch=_run_pool(pool_bin, network, ["auction", "nextbatchinfo"]),
         info=info,
         snapshot=_run_pool(pool_bin, network, ["auction", "snapshot"]),
+        accounts=_run_pool(pool_bin, network, ["accounts", "list"]),
+        orders=_run_pool(pool_bin, network, ["orders", "list"]),
     )

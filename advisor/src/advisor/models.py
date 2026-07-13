@@ -109,6 +109,17 @@ class PoolDepth(BaseModel):
     bid_units: int = 0
 
 
+class PoolOrder(BaseModel):
+    """One of our own resting orders on the Pool book."""
+
+    side: str                 # "bid" | "ask"
+    amt_sat: int
+    rate_ppb: int
+    duration_blocks: int
+    state: str
+    units: int = 0
+
+
 class PoolMarket(BaseModel):
     """Live Pool auction state via poold (SPEC FR3)."""
 
@@ -120,6 +131,8 @@ class PoolMarket(BaseModel):
     next_batch_clear_unix: int = 0
     depth: dict[int, PoolDepth] = {}          # blocks → open interest
     last_clearing_rate_ppb: dict[int, int] = {}  # blocks → most recent rate
+    account_available_sat: int = 0            # sum over OPEN accounts
+    own_orders: list[PoolOrder] = []          # our active resting orders
 
 
 class LoopQuote(BaseModel):

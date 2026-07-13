@@ -18,6 +18,7 @@ from .collectors.market import collect_market
 from .config import Settings
 from .lndclient import LndClient, LndClientError
 from .models import MarketSnapshot, NodeSnapshot
+from .recommend import RecommendationReport, recommend as run_recommend
 from .signals import NodeSignals, compute_signals
 
 app = typer.Typer(
@@ -276,6 +277,95 @@ def market(
         console.print_json(m.model_dump_json())
     else:
         _render_market(m, settings.quote_amount_sat)
+
+
+_SEV_STYLE = {
+    "CRITICAL": "bold red",
+    "HIGH": "red",
+    "MEDIUM": "yellow",
+    "LOW": "cyan",
+    "INFO": "dim",
+}
+
+
+def _render_report(report: RecommendationReport, top: int) -> None:
+    recs = report.recommendations
+    if not recs:
+        console.print(Panel(
+            "[green]No recommendations — liquidity looks healthy for now.[/]",
+            title="✅ All clear",
+        ))
+    shown = recs if top <= 0 else recs[:top]
+    for i, r in enumerate(shown, 1):
+        style = _SEV_STYLE.get(r.severity.name, "white")
+        body = [r.summary]
+        econ_bits = []
+        if r.est_cost_sat is not None:
+            econ_bits.append(f"est. cost [b]{r.est_cost_sat:,} sat[/]")
+        if r.est_benefit:
+            econ_bits.append(f"benefit: {r.est_benefit}")
+        if econ_bits:
+            body.append(" · ".join(econ_bits))
+        if r.command:
+            body.append(f"[bold white on grey23] {r.command} [/]")
+        for c in r.caveats:
+            body.append(f"[dim]⚠ {c}[/]")
+        console.print(Panel(
+            "\n\n".join(body),
+            title=f"#{i} [{r.severity.name}] {r.title}  [dim]({r.rule})[/]",
+            border_style=style,
+        ))
+    if len(recs) > len(shown):
+        console.print(
+            f"[dim]…{len(recs) - len(shown)} more — use --all to show "
+            "everything.[/]"
+        )
+    if report.skipped_rules:
+        notes = " · ".join(
+            f"{k}: {v}" for k, v in report.skipped_rules.items()
+        )
+        console.print(f"[dim]skipped: {notes}[/]")
+
+
+@app.command()
+def recommend(
+    network: Optional[str] = typer.Option(None, help="bitcoin network"),
+    host: Optional[str] = typer.Option(None, help="lnd gRPC host:port"),
+    offline: bool = typer.Option(
+        True, "--offline/--llm",
+        help="offline = deterministic engine only (LLM layer lands in M4)",
+    ),
+    show_all: bool = typer.Option(
+        False, "--all", help="show every recommendation, not just the top 3"
+    ),
+    multiplier: float = typer.Option(3.0, help="IQR outlier multiplier"),
+    json_out: bool = typer.Option(False, "--json", help="raw JSON output"),
+) -> None:
+    """Produce ranked, plain-language liquidity recommendations with computed
+    economics and ready-to-run commands (SPEC M3)."""
+    if not offline:
+        err.print("[yellow]LLM mode is milestone M4 — running offline.[/]")
+    settings = _settings_from_opts(network, host)
+    try:
+        with LndClient(settings) as client:
+            snap = collect_snapshot(client)
+    except LndClientError as exc:
+        err.print(f"[red]error:[/] {exc}")
+        raise typer.Exit(code=1)
+
+    sig = compute_signals(snap, outlier_multiplier=multiplier)
+    market = collect_market(settings)
+    report = run_recommend(snap, sig, market)
+
+    if json_out:
+        console.print_json(report.model_dump_json())
+    else:
+        console.print(Panel(
+            f"[b]{report.node_alias}[/] · deterministic engine "
+            f"(offline) · {len(report.recommendations)} recommendation(s)",
+            title="🧭 Liquidity Advisor", border_style="magenta",
+        ))
+        _render_report(report, top=0 if show_all else 3)
 
 
 def _version_callback(value: bool) -> None:

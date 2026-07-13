@@ -5,10 +5,10 @@ state and gives plain-language, actionable liquidity recommendations. It never
 moves funds.
 
 > Full design in [SPEC.md](./SPEC.md). This is the reference implementation,
-> built milestone by milestone against that spec. **Current status: M2
-> (market + fee collectors).**
+> built milestone by milestone against that spec. **Current status: M3
+> (deterministic recommendation engine).**
 
-## What works today (M0–M2)
+## What works today (M0–M3)
 
 - Connects to `lnd` over gRPC with a **read-only macaroon** (never `admin`).
 - Collects a typed `NodeSnapshot` — identity, balances, per-channel
@@ -28,9 +28,18 @@ moves funds.
   - **Loop terms + quotes** via a running `loopd`'s REST API (Loop Out /
     Loop In cost at a reference amount, effective %).
 
-The recommendation engine (M3) and the LLM advisor (M4) follow the
-[roadmap](./SPEC.md#8-roadmap). The [knowledge base](./knowledge/) that M4
-will load is drafted.
+- `advisor recommend` runs the deterministic rule engine (R1–R7 from
+  SPEC §5) over signals + market + fees and emits **ranked, plain-language
+  recommendations with computed economics and ready-to-run commands** —
+  e.g. on the testnet node it correctly fires a CRITICAL "acquire inbound"
+  with a fully-priced Pool bid (premium + execution fee + chain footprint)
+  and marks Loop Out infeasible below the server minimum. Top-3 by default
+  (`--all` for everything); every number is unit-tested against the worked
+  examples in note 04.
+
+The LLM advisor (M4) follows the [roadmap](./SPEC.md#8-roadmap). The
+[knowledge base](./knowledge/) it will load is drafted; `advisor recommend`
+is already the auditable offline baseline it must never contradict.
 
 ## Quickstart
 
