@@ -1,0 +1,16 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Local config / secrets — never commit macaroons or certs
+*.macaroon
+*.cert
+.env
+
+# The advisor's own baked read-only macaroon (created at setup)
+advisor.macaroon

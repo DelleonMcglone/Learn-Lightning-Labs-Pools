@@ -1,0 +1,20 @@
+# Lightning Liquidity Advisor — runtime + build dependencies
+# Python 3.9+ (developed against system 3.9; 3.12 recommended)
+
+# gRPC clients for lnd / poold / loopd
+grpcio>=1.59,<2
+grpcio-tools>=1.59,<2
+protobuf>=4.25,<6
+googleapis-common-protos>=1.60
+
+# Typed data model
+pydantic>=2.5,<3
+pydantic-settings>=2.1
+
+# CLI + pretty output
+typer>=0.9,<1
+rich>=13
+
+# LLM advisor (M4) + fee collector (M2)
+anthropic>=0.39
+requests>=2.31

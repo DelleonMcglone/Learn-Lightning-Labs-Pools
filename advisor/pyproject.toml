@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lightning-liquidity-advisor"
+version = "0.0.1"
+description = "Read-only, recommend-only liquidity advisor for a Lightning (lnd) node"
+requires-python = ">=3.9"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Delleon McGlone" }]
+dependencies = [
+    "grpcio>=1.59,<2",
+    "protobuf>=4.25,<6",
+    "googleapis-common-protos>=1.60",
+    "pydantic>=2.5,<3",
+    "pydantic-settings>=2.1",
+    "typer>=0.9,<1",
+    "rich>=13",
+    "anthropic>=0.39",
+    "requests>=2.31",
+]
+
+[project.scripts]
+advisor = "advisor.cli:run"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"advisor.lnrpc" = ["*.py"]
