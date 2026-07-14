@@ -71,6 +71,9 @@ Long-form articles explaining what I've learned:
 - [x] **Writing** — 3+ technical articles published
 - [ ] **Project** — AI Liquidity Advisor MVP deployed with demo video
 - [ ] **Open source** — 1 merged docs PR, 1 submitted code PR
+  — docs PR submitted: [faraday#247](https://github.com/lightninglabs/faraday/pull/247)
+  (clarifies bitcoind connection config; closes maintainer-triaged
+  [faraday#176](https://github.com/lightninglabs/faraday/issues/176))
 
 ---
 
