@@ -18,3 +18,8 @@ rich>=13
 # LLM advisor (M4) + fee collector (M2)
 anthropic>=0.39
 requests>=2.31
+
+# Web UI (advisor serve)
+fastapi>=0.110,<1
+uvicorn>=0.27,<1
+httpx>=0.26            # FastAPI TestClient

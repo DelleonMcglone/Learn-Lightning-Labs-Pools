@@ -545,6 +545,24 @@ def recommend(
         _render_report(report, top=0 if show_all else 3)
 
 
+@app.command()
+def serve(
+    network: Optional[str] = typer.Option(None, help="bitcoin network"),
+    host: Optional[str] = typer.Option(None, help="lnd gRPC host:port"),
+    listen: str = typer.Option("127.0.0.1", help="web UI bind address"),
+    port: int = typer.Option(8899, help="web UI port"),
+) -> None:
+    """Serve the local web UI: recommendation views + grounded chat."""
+    from .web import serve as web_serve
+
+    settings = _settings_from_opts(network, host)
+    console.print(
+        f"🧭 Liquidity Advisor UI on [b]http://{listen}:{port}[/] "
+        f"(node {settings.rpc_host}, {settings.network}) — Ctrl-C to stop"
+    )
+    web_serve(settings, listen, port)
+
+
 def _version_callback(value: bool) -> None:
     if value:
         console.print(f"advisor {__version__}")

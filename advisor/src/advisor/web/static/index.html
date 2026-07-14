@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Liquidity Advisor</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --border:#30363d; --txt:#e6edf3;
+    --muted:#8b949e; --accent:#f7931a; --green:#3fb950; --blue:#58a6ff;
+    --purple:#bc8cff; --red:#f85149; --yellow:#d29922;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+       background:var(--bg);color:var(--txt);height:100vh;display:flex;flex-direction:column}
+  header{display:flex;align-items:center;gap:12px;padding:12px 18px;
+         border-bottom:1px solid var(--border);background:var(--panel)}
+  header h1{font-size:15px;margin:0}
+  header .sub{color:var(--muted);font-size:12px}
+  header button{margin-left:auto;background:#21262d;border:1px solid var(--border);
+      color:var(--txt);border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px}
+  header button:hover{border-color:var(--blue)}
+  main{flex:1;display:grid;grid-template-columns:minmax(420px,1.2fr) minmax(340px,1fr);
+       gap:0;min-height:0}
+  #views{overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+  .card h2{margin:0 0 8px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .kvrow{display:flex;gap:10px;flex-wrap:wrap}
+  .kv{background:var(--bg);border:1px solid var(--border);border-radius:8px;
+      padding:8px 12px;min-width:110px;flex:1}
+  .kv .k{color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.5px}
+  .kv .v{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+  .seesaw{height:14px;border-radius:7px;overflow:hidden;display:flex;border:1px solid var(--border);margin:6px 0 2px}
+  .seesaw .out{background:var(--purple);height:100%}
+  .seesaw .in{background:var(--green);height:100%}
+  .legend{font-size:11.5px;color:var(--muted)}
+  .rec{border-left:4px solid var(--muted)}
+  .rec.CRITICAL{border-left-color:var(--red)}
+  .rec.HIGH{border-left-color:var(--accent)}
+  .rec.MEDIUM{border-left-color:var(--yellow)}
+  .rec.LOW{border-left-color:var(--blue)}
+  .rec.INFO{border-left-color:var(--muted)}
+  .rec .sev{font-size:10.5px;font-weight:700;letter-spacing:.6px;padding:2px 8px;
+            border-radius:10px;background:#21262d;margin-right:8px}
+  .rec .title{font-weight:600;font-size:14.5px}
+  .rec p{margin:8px 0;color:var(--txt)}
+  .econ{color:var(--muted);font-size:12.5px;margin:6px 0}
+  .cmd{display:flex;align-items:center;gap:8px;background:#010409;border:1px solid var(--border);
+       border-radius:8px;padding:8px 10px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+       font-size:12px;color:#7ee787;overflow-x:auto;white-space:nowrap}
+  .cmd button{background:#21262d;border:1px solid var(--border);color:var(--txt);
+      border-radius:6px;padding:3px 9px;font-size:11px;cursor:pointer;flex-shrink:0}
+  .caveat{color:var(--yellow);font-size:12px;margin-top:6px}
+  .empty{color:var(--muted);font-style:italic}
+  #chat{border-left:1px solid var(--border);display:flex;flex-direction:column;min-height:0;background:#0a0e14}
+  #chat .head{padding:10px 16px;border-bottom:1px solid var(--border);font-size:13px;color:var(--muted)}
+  #msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+  .msg{max-width:88%;padding:9px 13px;border-radius:12px;font-size:13.5px;white-space:pre-wrap}
+  .msg.user{align-self:flex-end;background:#1f3b57;border:1px solid #2c5378}
+  .msg.bot{align-self:flex-start;background:var(--panel);border:1px solid var(--border)}
+  .msg.bot.thinking{color:var(--muted);font-style:italic}
+  #composer{display:flex;gap:8px;padding:12px;border-top:1px solid var(--border)}
+  #composer input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:10px;
+      color:var(--txt);padding:10px 13px;font-size:13.5px;outline:none}
+  #composer input:focus{border-color:var(--blue)}
+  #composer button{background:var(--accent);border:none;color:#0d1117;font-weight:700;
+      border-radius:10px;padding:0 18px;cursor:pointer;font-size:13.5px}
+  #composer button:disabled{opacity:.5;cursor:default}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;padding:0 12px 10px}
+  .chips button{background:#161b22;border:1px solid var(--border);color:var(--muted);
+      border-radius:14px;padding:4px 11px;font-size:12px;cursor:pointer}
+  .chips button:hover{color:var(--txt);border-color:var(--blue)}
+</style>
+</head>
+<body>
+<header>
+  <h1>🧭 Liquidity Advisor</h1>
+  <span class="sub" id="nodeinfo">connecting…</span>
+  <button id="refresh">↻ Refresh</button>
+</header>
+<main>
+  <section id="views">
+    <div class="card" id="liquidity-card">
+      <h2>Liquidity</h2>
+      <div class="kvrow">
+        <div class="kv"><div class="k">Inbound (receive)</div><div class="v" id="v-in">—</div></div>
+        <div class="kv"><div class="k">Outbound (send)</div><div class="v" id="v-out">—</div></div>
+        <div class="kv"><div class="k">On-chain</div><div class="v" id="v-chain">—</div></div>
+      </div>
+      <div id="channels"></div>
+    </div>
+    <div class="card">
+      <h2>Market</h2>
+      <div class="kvrow" id="market-kv"></div>
+    </div>
+    <div class="card" style="background:transparent;border:none;padding:0">
+      <h2 style="padding:0 2px">Recommendations</h2>
+      <div id="recs" style="display:flex;flex-direction:column;gap:12px"></div>
+    </div>
+  </section>
+  <section id="chat">
+    <div class="head">💬 Ask the advisor — grounded in the report on the left.
+      Numbers in cards are authoritative; chat is conversational.</div>
+    <div id="msgs">
+      <div class="msg bot">Hi — I can explain any recommendation, the state of
+your node's liquidity, or the market. Try a suggestion below.</div>
+    </div>
+    <div class="chips">
+      <button>Why can't my node receive payments?</button>
+      <button>Explain the top recommendation like I'm new to Lightning</button>
+      <button>Loop Out vs a Pool bid — which fits me and why?</button>
+      <button>What would you do first, and what does it cost?</button>
+    </div>
+    <div id="composer">
+      <input id="box" placeholder="Ask about your liquidity…" autocomplete="off">
+      <button id="send">Send</button>
+    </div>
+  </section>
+</main>
+<script>
+const $ = s => document.querySelector(s);
+const sats = n => n.toLocaleString() + " sat";
+let chatHistory = [];
+
+async function loadReport(refresh=false){
+  const r = await fetch("/api/report" + (refresh ? "?refresh=1" : ""));
+  if(!r.ok){ $("#nodeinfo").textContent = "node unreachable"; return; }
+  const d = await r.json();
+  $("#nodeinfo").textContent =
+    `${d.node.alias} · block ${d.node.block_height.toLocaleString()}` +
+    (d.node.synced ? " · synced" : " · syncing") +
+    (d.llm_available ? " · chat: Claude" : " · chat: offline");
+  $("#v-in").textContent = sats(d.totals.inbound_sat);
+  $("#v-out").textContent = sats(d.totals.outbound_sat);
+  $("#v-chain").textContent = sats(d.balances.onchain_confirmed);
+
+  $("#channels").innerHTML = d.channels.map(c => {
+    const pct = c.capacity_sat ? (c.local_sat / c.capacity_sat * 100) : 0;
+    return `<div style="margin-top:10px">
+      <div class="legend">${c.active ? "🟢" : "🔴"} ${c.peer_pubkey.slice(0,16)}… ·
+        ${sats(c.capacity_sat)} capacity</div>
+      <div class="seesaw"><div class="out" style="width:${pct}%"></div>
+        <div class="in" style="width:${100-pct}%"></div></div>
+      <div class="legend">◼ outbound ${sats(c.local_sat)} ·
+        <span style="color:var(--green)">◼</span> inbound ${sats(c.remote_sat)}</div>
+    </div>`;
+  }).join("") || '<div class="empty">no channels</div>';
+
+  const m = d.market, kv = [];
+  if (m.fees.available) kv.push(["Chain fee (1h)", (m.fees.sat_per_vb["6"] ?? "—") + " sat/vB"]);
+  if (m.pool.connected){
+    const rate = m.pool.last_clearing_rate_ppb["2016"];
+    if (rate) kv.push(["Pool 2016-blk clear", rate.toLocaleString() + " ppb"]);
+    kv.push(["Next batch fee", m.pool.next_batch_feerate_sat_kw + " sat/kw"]);
+  } else kv.push(["Pool", "offline"]);
+  if (m.loop.connected){
+    if (m.loop.out_quote) kv.push(["Loop Out fee", sats(m.loop.out_quote.total_fee_sat)]);
+    if (m.loop.in_quote) kv.push(["Loop In fee", sats(m.loop.in_quote.total_fee_sat)]);
+  } else kv.push(["Loop", "offline"]);
+  $("#market-kv").innerHTML = kv.map(([k,v]) =>
+    `<div class="kv"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
+
+  const recs = d.report.recommendations;
+  $("#recs").innerHTML = recs.length ? recs.map(rec => `
+    <div class="card rec ${rec.severity_label ?? sevName(rec.severity)}">
+      <div><span class="sev">${sevName(rec.severity)}</span>
+        <span class="title">${rec.title}</span>
+        <span class="legend"> ${rec.rule}</span></div>
+      <p>${rec.summary}</p>
+      <div class="econ">${rec.est_cost_sat != null ? "est. cost <b>" +
+        sats(rec.est_cost_sat) + "</b>" : ""}${rec.est_benefit ?
+        " · " + rec.est_benefit : ""}</div>
+      ${rec.command ? `<div class="cmd"><span>${rec.command}</span>
+        <button onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent)">copy</button></div>` : ""}
+      ${rec.caveats.map(c => `<div class="caveat">⚠ ${c}</div>`).join("")}
+    </div>`).join("")
+    : '<div class="card"><span class="empty">No recommendations — liquidity looks healthy.</span></div>';
+}
+function sevName(s){ return typeof s === "string" ? s :
+  ["INFO","LOW","MEDIUM","HIGH","CRITICAL"][s] ?? "INFO"; }
+
+function mdLite(text){
+  // escape HTML, then render just **bold** and *italic* — chat replies use
+  // light markdown; anything richer stays literal.
+  const esc = text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  return esc
+    .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
+    .replace(/(^|\s)\*([^*\n]+)\*(?=\s|[.,;:!?]|$)/g, "$1<i>$2</i>");
+}
+
+function addMsg(text, cls){
+  const el = document.createElement("div");
+  el.className = "msg " + cls;
+  if (cls === "bot") el.innerHTML = mdLite(text);
+  else el.textContent = text;
+  $("#msgs").appendChild(el);
+  $("#msgs").scrollTop = $("#msgs").scrollHeight;
+  return el;
+}
+
+async function send(text){
+  if(!text.trim()) return;
+  addMsg(text, "user");
+  chatHistory.push({role:"user", content:text});
+  $("#box").value = ""; $("#send").disabled = true;
+  const thinking = addMsg("thinking…", "bot thinking");
+  try{
+    const r = await fetch("/api/chat", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({messages: chatHistory}),
+    });
+    const d = await r.json();
+    thinking.remove();
+    addMsg(d.reply ?? d.error ?? "no reply", "bot");
+    chatHistory.push({role:"assistant", content: d.reply ?? ""});
+  }catch(e){
+    thinking.remove(); addMsg("chat error: " + e, "bot");
+  }
+  $("#send").disabled = false; $("#box").focus();
+}
+
+$("#send").onclick = () => send($("#box").value);
+$("#box").addEventListener("keydown", e => { if(e.key === "Enter") send($("#box").value); });
+document.querySelectorAll(".chips button").forEach(b => b.onclick = () => send(b.textContent));
+$("#refresh").onclick = () => loadReport(true);
+loadReport();
+</script>
+</body>
+</html>

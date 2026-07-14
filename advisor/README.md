@@ -68,6 +68,18 @@ moves funds.
 - The CLI auto-loads a gitignored `.env` (see `.env.example`) so
   `ANTHROPIC_API_KEY` never needs to live in your shell profile.
 
+- **`advisor serve` — the web UI** (default `http://127.0.0.1:8899`):
+  recommendation views + a grounded chat, split-screen.
+  - **Views** render the deterministic engine verbatim: liquidity seesaw
+    per channel, live market tiles, severity-colored recommendation cards
+    with copyable commands and caveats. No LLM in that path.
+  - **Chat** (Claude) answers free-form questions grounded in the same
+    sanitized report + knowledge base. Commands are quoted
+    character-for-character from the report (never reconstructed), inputs
+    are privacy-filtered, and the UI states plainly: cards are
+    authoritative, chat is conversational. Without an API key the views
+    work fully and chat says it's offline.
+
 Remaining: M5 (CLI polish, config profiles, end-to-end demo + video).
 
 ## Quickstart

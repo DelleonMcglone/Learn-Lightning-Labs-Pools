@@ -104,6 +104,9 @@ def sanitize_report(
                 "est_cost_sat": r.est_cost_sat,
                 "est_benefit": r.est_benefit,
                 "caveats": r.caveats,
+                # sanitized like everything else (funding txids → aliases);
+                # chat must quote this verbatim, never reconstruct it
+                "command": r.command,
             }
             for i, r in enumerate(report.recommendations)
         ],
