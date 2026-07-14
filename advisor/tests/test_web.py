@@ -157,6 +157,25 @@ def test_chat_empty_messages_guarded():
         "messages": [{"role": "user", "content": "   "}]})
     assert "Ask me something" in r2.json()["reply"]
 
+
+def test_report_503_when_lnd_unreachable():
+    from advisor.lndclient import LndClientError
+
+    class DownProvider:
+        settings = Settings()
+
+        def gather(self):
+            raise LndClientError("lnd unreachable (connection refused)")
+
+    client = TestClient(create_app(DownProvider()))
+    r = client.get("/api/report")
+    assert r.status_code == 503
+    assert "unreachable" in r.json()["error"]
+    # chat surfaces the same failure gracefully (not a 500)
+    r2 = client.post("/api/chat", json={
+        "messages": [{"role": "user", "content": "hi"}]})
+    assert r2.status_code in (200, 503)
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_") and callable(fn):

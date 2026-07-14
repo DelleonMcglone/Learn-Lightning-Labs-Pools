@@ -5,7 +5,8 @@
 > plain-language, actionable recommendations.
 
 _Design record for the AI Liquidity Advisor. Author: Delleon McGlone. Status:
-draft v1 (planning). This spec is informed directly by the four source reviews in
+**implemented — stable MVP** (M0–M5 complete, July 2026; see §10 for the
+as-built record). This spec is informed directly by the four source reviews in
 this repo — [Pool](../repo-reviews/pool.md), [LND](../repo-reviews/lnd.md),
 [Loop](../repo-reviews/loop.md), and especially [Faraday](../repo-reviews/faraday.md),
 whose recommend-only engine is the architectural blueprint._
@@ -301,7 +302,40 @@ an add-on.
 
 ---
 
+## 10. As-built record (July 2026)
+
+All MVP milestones (M0–M5) shipped in [/advisor](./), verified against the
+live testnet stack; 64 unit tests across 7 suites. Deviations and additions
+vs. the plan, in the order they happened:
+
+- **History/ingestion added beyond plan** — `advisor ingest` (append-only
+  JSONL, non-identifying) plus derived baselines: R6 gained a 7-day fee
+  baseline trigger and R1 a **runway** trigger (inbound trend → "you run dry
+  in N days"). Neither was in the v1 requirements; both fell out of the
+  fee-awareness goal.
+- **Web UI + grounded chat pulled forward from M6** — `advisor serve`:
+  deterministic recommendation views plus a Claude chat grounded in the
+  sanitized report and knowledge base. The number contract was extended to
+  chat with a "quote commands character-for-character" rule after UX
+  testing caught the model reconstructing a command flag (APR where a
+  per-term percent belonged).
+- **Number contract proved itself twice** — the CLI's
+  `--interest_rate_percent` unit bug (caught against note 05's calibration)
+  and the chat command-reconstruction bug were both numeric-integrity
+  failures caught by the deterministic-core design, not by chance.
+- **Open questions resolved**: the LLM adds clear value as *explainer*
+  (ranking rarely deviates from severity order on a small node — revisit on
+  a larger portfolio); mempool.space chosen as the fee source (swappable);
+  market-data absence degrades exactly as designed (rules skip with notes).
+- **Success metrics**: figures 100% code-computed and tested ✓; actionable
+  commands emitted ✓ (the testnet node yields 1 correct CRITICAL rec — its
+  real state warrants exactly that; the ≥3-recommendation target reflects a
+  richer node and is demonstrated in the rule test-suite instead);
+  demo video pending (script in [DEMO.md](./DEMO.md)).
+
+---
+
 _Part of [Lightning Labs Prep](../README.md). This is the design record; the
-implementation will live in its own repo (link to follow). Grounded in the
-[source reviews](../README.md#source-code-analysis) of Pool, LND, Loop, and
-Faraday._
+implementation lives in [/advisor](./) (split into its own repo may follow).
+Grounded in the [source reviews](../README.md#source-code-analysis) of Pool,
+LND, Loop, and Faraday._

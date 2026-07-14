@@ -70,12 +70,15 @@
   .chips button{background:#161b22;border:1px solid var(--border);color:var(--muted);
       border-radius:14px;padding:4px 11px;font-size:12px;cursor:pointer}
   .chips button:hover{color:var(--txt);border-color:var(--blue)}
+  .chips button:disabled{opacity:.4;cursor:default}
+  .chips button:disabled:hover{color:var(--muted);border-color:var(--border)}
 </style>
 </head>
 <body>
 <header>
   <h1>🧭 Liquidity Advisor</h1>
   <span class="sub" id="nodeinfo">connecting…</span>
+  <span class="sub" id="updated"></span>
   <button id="refresh">↻ Refresh</button>
 </header>
 <main>
@@ -122,10 +125,39 @@ const $ = s => document.querySelector(s);
 const sats = n => n.toLocaleString() + " sat";
 let chatHistory = [];
 
+function showError(msg){
+  let box = $("#errbox");
+  if(!box){
+    box = document.createElement("div");
+    box.id = "errbox";
+    box.className = "card";
+    box.style.borderColor = "var(--red)";
+    $("#views").prepend(box);
+  }
+  box.innerHTML = `<h2 style="color:var(--red)">Node unreachable</h2>
+    <p>${msg}</p>
+    <p class="legend">Is lnd running and unlocked? The Advisor is read-only —
+    it reconnects automatically once the node is back. Retrying…</p>`;
+}
+
 async function loadReport(refresh=false){
-  const r = await fetch("/api/report" + (refresh ? "?refresh=1" : ""));
-  if(!r.ok){ $("#nodeinfo").textContent = "node unreachable"; return; }
-  const d = await r.json();
+  let r, d;
+  try{
+    r = await fetch("/api/report" + (refresh ? "?refresh=1" : ""));
+    d = await r.json();
+  }catch(e){
+    $("#nodeinfo").textContent = "advisor server unreachable";
+    showError(String(e));
+    return;
+  }
+  if(!r.ok){
+    $("#nodeinfo").textContent = "node unreachable";
+    showError(d.error ?? "unknown error");
+    return;
+  }
+  $("#errbox")?.remove();
+  $("#updated").textContent =
+    "· updated " + new Date().toLocaleTimeString();
   $("#nodeinfo").textContent =
     `${d.node.alias} · block ${d.node.block_height.toLocaleString()}` +
     (d.node.synced ? " · synced" : " · syncing") +
@@ -198,11 +230,20 @@ function addMsg(text, cls){
   return el;
 }
 
+let chatBusy = false;
+function setChatBusy(busy){
+  chatBusy = busy;
+  $("#send").disabled = busy;
+  document.querySelectorAll(".chips button")
+    .forEach(b => b.disabled = busy);
+}
+
 async function send(text){
-  if(!text.trim()) return;
+  if(!text.trim() || chatBusy) return;
   addMsg(text, "user");
   chatHistory.push({role:"user", content:text});
-  $("#box").value = ""; $("#send").disabled = true;
+  $("#box").value = "";
+  setChatBusy(true);
   const thinking = addMsg("thinking…", "bot thinking");
   try{
     const r = await fetch("/api/chat", {
@@ -216,7 +257,7 @@ async function send(text){
   }catch(e){
     thinking.remove(); addMsg("chat error: " + e, "bot");
   }
-  $("#send").disabled = false; $("#box").focus();
+  setChatBusy(false); $("#box").focus();
 }
 
 // Two Enter paths, belt and braces (found during UX testing):
@@ -236,6 +277,9 @@ $("#box").addEventListener("keydown", e => {
 document.querySelectorAll(".chips button").forEach(b => b.onclick = () => send(b.textContent));
 $("#refresh").onclick = () => loadReport(true);
 loadReport();
+// Keep the views live: server caches for 15s, so a 30s poll is cheap and
+// the header timestamp shows freshness.
+setInterval(() => loadReport(false), 30_000);
 </script>
 </body>
 </html>

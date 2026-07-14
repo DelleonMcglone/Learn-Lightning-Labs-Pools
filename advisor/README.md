@@ -135,10 +135,44 @@ advisor/
 └── tests/                   deterministic unit tests
 ```
 
+## Commands
+
+| Command | What it does |
+| --- | --- |
+| `advisor snapshot` | Read-only node state: identity, balances, per-channel in/outbound |
+| `advisor signals` | Deterministic liquidity signals + IQR outlier flags (`--multiplier`) |
+| `advisor market` | Live mempool fees, Pool auction state, Loop quotes |
+| `advisor ingest` | Append one history record (`--quiet` for cron) |
+| `advisor history` | The ingested time series + fee baseline + inbound trend |
+| `advisor recommend` | Ranked recommendations with economics + commands (`--offline`, `--all`, `--json`) |
+| `advisor serve` | Local web UI: recommendation views + grounded chat (port 8899) |
+
+All commands take `--network` / `--host`; everything is overridable via
+`ADVISOR_*` env vars or `.env`.
+
+## Troubleshooting
+
+- **`lnd unreachable`** — is lnd running and the wallet unlocked
+  (`lncli unlock`)? Check `ADVISOR_RPC_HOST` / `ADVISOR_LNDDIR`.
+- **`macaroon not found`** — the default path is
+  `<lnddir>/data/chain/bitcoin/<network>/readonly.macaroon`; set
+  `ADVISOR_MACAROON_PATH` (ideally to a baked least-privilege macaroon,
+  see above).
+- **Pool/Loop shown offline** — `poold`/`loopd` aren't running or aren't on
+  the expected ports (`ADVISOR_POOL_BIN`, `ADVISOR_LOOP_REST_HOST`,
+  `ADVISOR_LOOP_DIR`). Market-dependent rules skip gracefully and say so.
+- **Chat says offline** — set `ANTHROPIC_API_KEY` in `advisor/.env`. Views
+  and `--offline` recommendations never need it.
+- **Fee baseline/trend say "needs ≥3 records"** — run `advisor ingest` on a
+  schedule (`0 * * * * advisor ingest --quiet`); trends also need records
+  spanning ≥1 hour.
+- **Port 8899 in use** — `advisor serve --port <other>`.
+
 ## Tests
 
 ```bash
-python -m pytest        # or: python tests/test_models.py
+for t in tests/test_*.py; do PYTHONPATH=src python "$t"; done
+# (or python -m pytest if installed)
 ```
 
 ## Safety

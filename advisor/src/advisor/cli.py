@@ -27,6 +27,7 @@ from .signals import NodeSignals, compute_signals
 
 app = typer.Typer(
     add_completion=False,
+    no_args_is_help=True,  # bare `advisor` shows the command list
     help="Lightning Liquidity Advisor — read-only, recommend-only.",
 )
 
