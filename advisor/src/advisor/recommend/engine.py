@@ -15,7 +15,8 @@ from .rules import CHAIN_TOUCHING_RULES, RULES, r6_defer_onchain
 
 
 def recommend(
-    snap: NodeSnapshot, sig: NodeSignals, market: MarketSnapshot
+    snap: NodeSnapshot, sig: NodeSignals, market: MarketSnapshot,
+    fee_baseline_sat_vb=None,
 ) -> RecommendationReport:
     recs: list[Recommendation] = []
     skipped: dict[str, str] = {}
@@ -28,7 +29,10 @@ def recommend(
 
     # R6 last: it needs to know how many chain-touching recs exist.
     chain_touching = sum(1 for r in recs if r.rule in CHAIN_TOUCHING_RULES)
-    recs.extend(r6_defer_onchain(snap, sig, market, chain_touching))
+    recs.extend(r6_defer_onchain(
+        snap, sig, market, chain_touching,
+        baseline_sat_vb=fee_baseline_sat_vb,
+    ))
 
     # Record why market-dependent rules had nothing to price.
     if not market.pool.connected:

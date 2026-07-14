@@ -53,6 +53,15 @@ moves funds.
   Set `ANTHROPIC_API_KEY` to enable; model configurable via
   `ADVISOR_LLM_MODEL` (default `claude-sonnet-4-5`).
 
+- `advisor ingest` is the **ingestion pipeline**: one compact,
+  non-identifying JSONL record per run (node totals, fee tiers, Pool
+  clearing rates, Loop quotes) appended to `~/.advisor/history.jsonl` —
+  cron-friendly (`advisor ingest --quiet`). History powers baselines:
+  after ≥3 records, R6 compares today's chain fee against **your recorded
+  7-day median**, not just the intra-day spread.
+- The CLI auto-loads a gitignored `.env` (see `.env.example`) so
+  `ANTHROPIC_API_KEY` never needs to live in your shell profile.
+
 Remaining: M5 (CLI polish, config profiles, end-to-end demo + video).
 
 ## Quickstart

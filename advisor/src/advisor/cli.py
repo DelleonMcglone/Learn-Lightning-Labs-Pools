@@ -4,7 +4,9 @@
 
 from __future__ import annotations
 
+import os
 import sys
+from pathlib import Path
 from typing import Optional
 
 import typer
@@ -17,6 +19,7 @@ from .collectors.lnd_collector import collect_snapshot
 from .collectors.market import collect_market
 from .config import Settings
 from .lndclient import LndClient, LndClientError
+from .history import HistoryStore, build_record
 from .llm import LlmUnavailable, enhance_report
 from .models import MarketSnapshot, NodeSnapshot
 from .recommend import RecommendationReport, recommend as run_recommend
@@ -26,6 +29,27 @@ app = typer.Typer(
     add_completion=False,
     help="Lightning Liquidity Advisor — read-only, recommend-only.",
 )
+
+
+def _load_env_file() -> None:
+    """Load KEY=VALUE lines from ./.env or the project .env into os.environ
+    (existing environment always wins). Lets the operator keep
+    ANTHROPIC_API_KEY in a gitignored file instead of their shell profile."""
+    for candidate in (Path.cwd() / ".env",
+                      Path(__file__).resolve().parents[2] / ".env"):
+        if not candidate.is_file():
+            continue
+        for line in candidate.read_text().splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            key, value = key.strip(), value.strip().strip("'\"")
+            if key and key not in os.environ:
+                os.environ[key] = value
+
+
+_load_env_file()
 console = Console()
 err = Console(stderr=True)
 
@@ -328,6 +352,51 @@ def _render_report(report: RecommendationReport, top: int) -> None:
         console.print(f"[dim]skipped: {notes}[/]")
 
 
+@app.command()
+def ingest(
+    network: Optional[str] = typer.Option(None, help="bitcoin network"),
+    host: Optional[str] = typer.Option(None, help="lnd gRPC host:port"),
+    quiet: bool = typer.Option(False, "--quiet", help="one line out (cron)"),
+) -> None:
+    """Collect node + market state and append one record to the local
+    history (ingestion pipeline). Run periodically — e.g. hourly via cron:
+
+        0 * * * *  advisor ingest --quiet
+    """
+    settings = _settings_from_opts(network, host)
+    try:
+        with LndClient(settings) as client:
+            snap = collect_snapshot(client)
+    except LndClientError as exc:
+        err.print(f"[red]error:[/] {exc}")
+        raise typer.Exit(code=1)
+
+    market = collect_market(settings)
+    store = HistoryStore(settings.history_path)
+    record = build_record(snap, market)
+    store.append(record)
+
+    n = store.count()
+    baseline = store.fee_baseline_sat_vb()
+    if quiet:
+        console.print(
+            f"ingested ts={record['ts']} records={n}"
+        )
+        return
+    console.print(Panel(
+        f"record [b]#{n}[/] appended to [dim]{settings.history_path}[/]\n"
+        f"inbound {record['inbound_sat']:,} sat · outbound "
+        f"{record['outbound_sat']:,} sat · on-chain "
+        f"{record['onchain_sat']:,} sat\n"
+        f"fees {record['fees_sat_per_vb'] or 'n/a'} · pool clear "
+        f"{record['pool_clearing_ppb'] or 'n/a'} · loop out/in "
+        f"{record['loop_out_fee_sat']}/{record['loop_in_fee_sat']} sat\n"
+        + (f"7-day fee baseline: [b]{baseline:g} sat/vB[/]" if baseline
+           else "[dim]fee baseline needs ≥3 records[/]"),
+        title="📥 Ingested", border_style="cyan",
+    ))
+
+
 def _render_enhanced(enh, report: RecommendationReport, top: int) -> None:
     shown = enh.items if top <= 0 else enh.items[:top]
     for i, item in enumerate(shown, 1):
@@ -393,7 +462,8 @@ def recommend(
 
     sig = compute_signals(snap, outlier_multiplier=multiplier)
     market = collect_market(settings)
-    report = run_recommend(snap, sig, market)
+    baseline = HistoryStore(settings.history_path).fee_baseline_sat_vb()
+    report = run_recommend(snap, sig, market, fee_baseline_sat_vb=baseline)
 
     enhanced = None
     mode = "deterministic engine (offline)"

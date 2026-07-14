@@ -52,6 +52,10 @@ class Settings(BaseSettings):
     llm_model: str = "claude-sonnet-4-5"
     llm_max_tokens: int = 2000
 
+    # --- Ingestion pipeline ------------------------------------------------
+    # Append-only JSONL time series written by `advisor ingest`.
+    history_path: Path = Path("~/.advisor/history.jsonl")
+
     @model_validator(mode="after")
     def _derive_paths(self) -> "Settings":
         self.lnddir = Path(self.lnddir).expanduser()
@@ -64,6 +68,7 @@ class Settings(BaseSettings):
         self.macaroon_path = Path(self.macaroon_path).expanduser()
         self.tls_cert_path = Path(self.tls_cert_path).expanduser()
         self.loop_dir = Path(self.loop_dir).expanduser()
+        self.history_path = Path(self.history_path).expanduser()
         if not self.mempool_api_base:
             prefix = "" if self.network == "mainnet" else f"/{self.network}"
             self.mempool_api_base = f"https://mempool.space{prefix}/api"

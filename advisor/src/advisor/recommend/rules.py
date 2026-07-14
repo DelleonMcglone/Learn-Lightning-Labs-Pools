@@ -7,6 +7,8 @@ in `caveats` (knowledge/03-heuristics #12: never overstate certainty).
 
 from __future__ import annotations
 
+from typing import Optional
+
 from ..models import MarketSnapshot, NodeSnapshot
 from ..signals import NodeSignals
 from . import economics as econ
@@ -350,30 +352,51 @@ def r5_retune_fees(
 
 # ----------------------------------------------------------------- R6 ----
 
+FEE_BASELINE_RATIO = 2.0  # fast vs. recorded 7-day norm considered "hot"
+
+
 def r6_defer_onchain(
     snap: NodeSnapshot, sig: NodeSignals, market: MarketSnapshot,
     chain_touching: int = 0,
+    baseline_sat_vb: Optional[float] = None,
 ) -> list:
-    """Mempool hot → recommend waiting; compute the savings."""
+    """Mempool hot → recommend waiting; compute the savings.
+
+    Two triggers: the static intra-day spread (fast ≥ 3× economy), and —
+    when the ingestion history provides one — today's fast rate vs. the
+    node's own recorded baseline (fast ≥ 2× the 7-day median).
+    """
     fees = market.fees
     if not fees.available:
         return []
     fast = fees.at_target(6)
     economy = fees.at_target(144)
-    if not fast or not economy or fast < FEE_ELEVATED_RATIO * economy:
+    if not fast or not economy:
         return []
+
+    spread_hot = fast >= FEE_ELEVATED_RATIO * economy
+    baseline_hot = (
+        baseline_sat_vb is not None and fast >= FEE_BASELINE_RATIO * baseline_sat_vb
+    )
+    if not (spread_hot or baseline_hot):
+        return []
+
+    reference = economy if spread_hot else float(baseline_sat_vb)
+    against = ("economy rate" if spread_hot
+               else f"your 7-day norm of {baseline_sat_vb:g} sat/vB")
     savings = econ.fee_savings_sat(
-        econ.BATCH_PARTICIPANT_VBYTES, fast, economy
+        econ.BATCH_PARTICIPANT_VBYTES, fast, reference
     )
     return [Recommendation(
         rule="R6", title="Defer on-chain actions",
         severity=Severity.HIGH if chain_touching else Severity.INFO,
         summary=(
             f"Chain fees are elevated ({fast:g} sat/vB for ~1h confirm vs "
-            f"{economy:g} economy). Waiting saves ≈{_fmt(savings)} per "
-            "typical on-chain action; defer non-urgent opens/closes/swaps."
+            f"{against}). Waiting saves ≈{_fmt(savings)} per typical "
+            "on-chain action; defer non-urgent opens/closes/swaps."
         ),
         data={"sat_per_vb_6": fast, "sat_per_vb_144": economy,
+              "baseline_sat_per_vb": baseline_sat_vb,
               "savings_per_350vb_sat": savings,
               "affected_recommendations": chain_touching},
         est_benefit=f"≈{_fmt(savings)} saved per deferred chain action",
