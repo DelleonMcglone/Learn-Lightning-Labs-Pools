@@ -74,6 +74,10 @@ Long-form articles explaining what I've learned:
   — docs PR submitted: [faraday#247](https://github.com/lightninglabs/faraday/pull/247)
   (clarifies bitcoind connection config; closes maintainer-triaged
   [faraday#176](https://github.com/lightninglabs/faraday/issues/176))
+  — code PR submitted: [aperture#249](https://github.com/lightninglabs/aperture/pull/249)
+  (L402 payments via router's `SendPaymentV2` instead of the deprecated
+  `SendPaymentSync` — fixes the stuck-pending-token failure found during
+  the [Pool testnet session](./setup/pool.md))
 
 ---
 
