@@ -397,6 +397,54 @@ def ingest(
     ))
 
 
+@app.command()
+def history(
+    last: int = typer.Option(10, help="records to show"),
+) -> None:
+    """Show the ingested time series and the derived baselines."""
+    import datetime as _dt
+
+    settings = Settings()
+    store = HistoryStore(settings.history_path)
+    records = list(store.records())
+    if not records:
+        console.print(f"[dim]no history yet — run `advisor ingest` "
+                      f"(store: {settings.history_path})[/]")
+        raise typer.Exit()
+
+    tbl = Table(title=f"📈 History ({len(records)} records, showing last "
+                      f"{min(last, len(records))})", header_style="dim")
+    for col, justify in (("when", "left"), ("inbound", "right"),
+                         ("outbound", "right"), ("on-chain", "right"),
+                         ("fee@6", "right"), ("pool 2016", "right"),
+                         ("loop out/in", "right")):
+        tbl.add_column(col, justify=justify)
+    for r in records[-last:]:
+        when = _dt.datetime.fromtimestamp(r["ts"]).strftime("%m-%d %H:%M")
+        tbl.add_row(
+            when,
+            f"{r.get('inbound_sat', 0):,}",
+            f"{r.get('outbound_sat', 0):,}",
+            f"{r.get('onchain_sat', 0):,}",
+            str(r.get("fees_sat_per_vb", {}).get("6", "—")),
+            str(r.get("pool_clearing_ppb", {}).get("2016", "—")),
+            f"{r.get('loop_out_fee_sat', '—')}/{r.get('loop_in_fee_sat', '—')}",
+        )
+    console.print(tbl)
+
+    baseline = store.fee_baseline_sat_vb()
+    trend = store.inbound_trend_sat_per_day()
+    bits = []
+    bits.append(f"7-day fee baseline: "
+                + (f"[b]{baseline:g} sat/vB[/]" if baseline else "[dim]needs ≥3 records[/]"))
+    if trend is None:
+        bits.append("inbound trend: [dim]needs ≥3 records spanning ≥1h[/]")
+    else:
+        arrow = "↓ draining" if trend < 0 else ("↑ growing" if trend > 0 else "flat")
+        bits.append(f"inbound trend: [b]{trend:+,.0f} sat/day[/] ({arrow})")
+    console.print(Panel(" · ".join(bits), border_style="cyan"))
+
+
 def _render_enhanced(enh, report: RecommendationReport, top: int) -> None:
     shown = enh.items if top <= 0 else enh.items[:top]
     for i, item in enumerate(shown, 1):
@@ -462,8 +510,12 @@ def recommend(
 
     sig = compute_signals(snap, outlier_multiplier=multiplier)
     market = collect_market(settings)
-    baseline = HistoryStore(settings.history_path).fee_baseline_sat_vb()
-    report = run_recommend(snap, sig, market, fee_baseline_sat_vb=baseline)
+    store = HistoryStore(settings.history_path)
+    report = run_recommend(
+        snap, sig, market,
+        fee_baseline_sat_vb=store.fee_baseline_sat_vb(),
+        inbound_trend_sat_per_day=store.inbound_trend_sat_per_day(),
+    )
 
     enhanced = None
     mode = "deterministic engine (offline)"

@@ -11,12 +11,18 @@ from __future__ import annotations
 from ..models import MarketSnapshot, NodeSnapshot
 from ..signals import NodeSignals
 from .models import Recommendation, RecommendationReport
-from .rules import CHAIN_TOUCHING_RULES, RULES, r6_defer_onchain
+from .rules import (
+    CHAIN_TOUCHING_RULES,
+    RULES,
+    r1_acquire_inbound,
+    r6_defer_onchain,
+)
 
 
 def recommend(
     snap: NodeSnapshot, sig: NodeSignals, market: MarketSnapshot,
     fee_baseline_sat_vb=None,
+    inbound_trend_sat_per_day=None,
 ) -> RecommendationReport:
     recs: list[Recommendation] = []
     skipped: dict[str, str] = {}
@@ -24,6 +30,10 @@ def recommend(
     if sig.channels_total == 0:
         skipped["all"] = "no channels — open a first channel to begin"
 
+    recs.extend(r1_acquire_inbound(
+        snap, sig, market,
+        inbound_trend_sat_per_day=inbound_trend_sat_per_day,
+    ))
     for rule_fn in RULES:
         recs.extend(rule_fn(snap, sig, market))
 

@@ -39,6 +39,10 @@ def build_record(
         "onchain_sat": snap.balances.onchain_confirmed,
         "channels_total": len(snap.channels),
         "channels_active": len(active),
+        # Cumulative per-channel counters summed — deltas across records
+        # give send/receive rates over time.
+        "sent_total_sat": sum(c.total_sent_sat for c in snap.channels),
+        "received_total_sat": sum(c.total_received_sat for c in snap.channels),
         "fees_sat_per_vb": {str(k): v for k, v in market.fees.sat_per_vb.items()}
         if market.fees.available else {},
         "pool_clearing_ppb": {
@@ -107,3 +111,27 @@ class HistoryStore:
         if len(values) < 3:
             return None
         return float(statistics.median(values))
+
+    def inbound_trend_sat_per_day(
+        self, days: int = 7, now: Optional[int] = None,
+        min_span_s: int = 3_600,
+    ) -> Optional[float]:
+        """Rate of change of inbound liquidity (sat/day) over the window.
+
+        Endpoint slope over the observed span. Negative = inbound draining
+        (the node is receiving). None until ≥3 observations spanning at
+        least `min_span_s` — a slope from a burst of same-minute records
+        is noise, same hedging rule as the fee baseline.
+        """
+        now = int(now if now is not None else time.time())
+        recs = [
+            r for r in self.records(since_ts=now - days * 86_400)
+            if "inbound_sat" in r and "ts" in r
+        ]
+        if len(recs) < 3:
+            return None
+        first, last = recs[0], recs[-1]
+        span = last["ts"] - first["ts"]
+        if span < min_span_s:
+            return None
+        return (last["inbound_sat"] - first["inbound_sat"]) * 86_400 / span

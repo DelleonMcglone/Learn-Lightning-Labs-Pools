@@ -54,11 +54,17 @@ moves funds.
   `ADVISOR_LLM_MODEL` (default `claude-sonnet-4-5`).
 
 - `advisor ingest` is the **ingestion pipeline**: one compact,
-  non-identifying JSONL record per run (node totals, fee tiers, Pool
-  clearing rates, Loop quotes) appended to `~/.advisor/history.jsonl` —
-  cron-friendly (`advisor ingest --quiet`). History powers baselines:
-  after ≥3 records, R6 compares today's chain fee against **your recorded
-  7-day median**, not just the intra-day spread.
+  non-identifying JSONL record per run (node totals, send/receive
+  counters, fee tiers, Pool clearing rates, Loop quotes) appended to
+  `~/.advisor/history.jsonl` — cron-friendly (`advisor ingest --quiet`).
+  `advisor history` shows the time series and derived baselines. History
+  powers trend-aware rules:
+  - **R6 fee baseline** — after ≥3 records, today's chain fee is compared
+    against **your recorded 7-day median**, not just the intra-day spread;
+  - **R1 runway** — the inbound *trend* (sat/day, ≥3 records spanning ≥1h)
+    fires "acquire inbound" even when today's share looks healthy, if the
+    drain rate means you run dry within 7 days (CRITICAL under 3), with
+    the runway stated in the recommendation.
 - The CLI auto-loads a gitignored `.env` (see `.env.example`) so
   `ANTHROPIC_API_KEY` never needs to live in your shell profile.
 

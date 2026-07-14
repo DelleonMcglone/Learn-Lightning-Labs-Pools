@@ -32,18 +32,40 @@ def _fmt(n: int) -> str:
 
 # ----------------------------------------------------------------- R1 ----
 
+RUNWAY_WARN_DAYS = 7.0      # trend says inbound gone within a week → fire
+RUNWAY_CRITICAL_DAYS = 3.0  # …within 3 days → critical
+
+
 def r1_acquire_inbound(
-    snap: NodeSnapshot, sig: NodeSignals, market: MarketSnapshot
+    snap: NodeSnapshot, sig: NodeSignals, market: MarketSnapshot,
+    inbound_trend_sat_per_day: Optional[float] = None,
 ) -> list:
-    """Low inbound headroom → price Loop Out vs. a Pool bid, side by side."""
-    if sig.channels_total == 0 or sig.inbound_ratio >= INBOUND_LOW_SHARE:
+    """Low inbound headroom → price Loop Out vs. a Pool bid, side by side.
+
+    Two triggers: the static share threshold, and — when ingestion history
+    provides a trend — the *runway*: even a healthy-looking share fires if
+    inbound is draining fast enough to run dry within RUNWAY_WARN_DAYS.
+    """
+    if sig.channels_total == 0:
+        return []
+
+    runway_days: Optional[float] = None
+    if (inbound_trend_sat_per_day is not None
+            and inbound_trend_sat_per_day < 0 and sig.total_inbound_sat > 0):
+        runway_days = sig.total_inbound_sat / -inbound_trend_sat_per_day
+
+    share_low = sig.inbound_ratio < INBOUND_LOW_SHARE
+    runway_low = runway_days is not None and runway_days < RUNWAY_WARN_DAYS
+    if not (share_low or runway_low):
         return []
 
     total = sig.total_inbound_sat + sig.total_outbound_sat
     deficit = int(total * INBOUND_TARGET_SHARE) - sig.total_inbound_sat
     severity = (
         Severity.CRITICAL
-        if sig.inbound_ratio < INBOUND_CRITICAL_SHARE
+        if (sig.inbound_ratio < INBOUND_CRITICAL_SHARE
+            or (runway_days is not None
+                and runway_days < RUNWAY_CRITICAL_DAYS))
         else Severity.HIGH
     )
 
@@ -53,6 +75,10 @@ def r1_acquire_inbound(
         "inbound_share": round(sig.inbound_ratio, 4),
         "deficit_to_target_sat": deficit,
     }
+    if inbound_trend_sat_per_day is not None:
+        data["inbound_trend_sat_per_day"] = round(inbound_trend_sat_per_day)
+    if runway_days is not None:
+        data["runway_days"] = round(runway_days, 1)
     caveats = []
     options = []
 
@@ -127,11 +153,18 @@ def r1_acquire_inbound(
     else:
         caveats.append("poold not reachable — Pool bid not priced")
 
+    runway_note = (
+        f" At the current drain rate you have ≈{runway_days:.1f} days of "
+        "receive headroom left."
+        if runway_low else ""
+    )
+
     if not options:
         summary = (
             f"Inbound liquidity is {sig.inbound_ratio:.0%} of capacity "
             f"({_fmt(sig.total_inbound_sat)}) — the node can barely receive, "
             "but neither acquisition option could be priced right now."
+            + runway_note
         )
         return [Recommendation(
             rule="R1", title="Acquire inbound liquidity",
@@ -141,11 +174,16 @@ def r1_acquire_inbound(
     options.sort(key=lambda o: o[1])
     kind, cost_sat, amt, cmd = options[0]
     via = "Loop Out" if kind == "loop_out" else "a Pool bid (2016-block lease)"
-    summary = (
+    lead = (
         f"Inbound is only {sig.inbound_ratio:.0%} of capacity "
-        f"({_fmt(sig.total_inbound_sat)} to receive with). Cheapest priced "
-        f"route to more inbound: {via} — {_fmt(amt)} of inbound for "
-        f"≈{_fmt(cost_sat)} ({cost_sat / amt:.2%})."
+        f"({_fmt(sig.total_inbound_sat)} to receive with)."
+        if share_low else
+        f"Inbound looks OK today ({sig.inbound_ratio:.0%} of capacity) but "
+        "is draining."
+    )
+    summary = (
+        f"{lead}{runway_note} Cheapest priced route to more inbound: {via} — "
+        f"{_fmt(amt)} of inbound for ≈{_fmt(cost_sat)} ({cost_sat / amt:.2%})."
     )
     return [Recommendation(
         rule="R1", title="Acquire inbound liquidity", severity=severity,
@@ -448,14 +486,14 @@ def r7_consolidate_orders(
 
 
 RULES: list = [
-    r1_acquire_inbound,
     r2_acquire_outbound,
     r3_close_underperformer,
     r4_rebalance,
     r5_retune_fees,
     r7_consolidate_orders,
-    # r6 runs last in the engine — it needs to know how many chain-touching
-    # recommendations exist.
+    # r1 and r6 are invoked explicitly by the engine: r1 receives the
+    # history-derived inbound trend, r6 the fee baseline + chain-touching
+    # count.
 ]
 
 CHAIN_TOUCHING_RULES = {"R1", "R2", "R3", "R7"}

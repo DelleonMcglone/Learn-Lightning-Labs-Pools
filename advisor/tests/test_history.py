@@ -128,6 +128,79 @@ def test_r6_fires_on_baseline_even_when_spread_flat():
     assert r6[0].data["savings_per_350vb_sat"] == 2_800
 
 
+def test_inbound_trend_endpoint_slope():
+    store = _store()
+    now = T0 + 10 * DAY
+    # 300k → 100k over 2 days = −100k/day
+    base = build_record(_snap(), _market(), ts=now - 2 * DAY)
+    base["inbound_sat"] = 300_000
+    store.append(base)
+    mid = build_record(_snap(), _market(), ts=now - DAY)
+    mid["inbound_sat"] = 200_000
+    store.append(mid)
+    last = build_record(_snap(), _market(), ts=now)
+    last["inbound_sat"] = 100_000
+    store.append(last)
+    assert store.inbound_trend_sat_per_day(now=now) == -100_000
+
+
+def test_inbound_trend_needs_observations_and_span():
+    store = _store()
+    now = T0
+    store.append({**build_record(_snap(), _market(), ts=now - 60)})
+    store.append({**build_record(_snap(), _market(), ts=now - 30)})
+    assert store.inbound_trend_sat_per_day(now=now) is None  # only 2
+    store.append({**build_record(_snap(), _market(), ts=now)})
+    # 3 records but all within 60s → span too short
+    assert store.inbound_trend_sat_per_day(now=now) is None
+
+
+def _healthy_snapshot():
+    """40% inbound — the static share trigger must NOT fire."""
+    s = _snap()
+    s.channels[0].local_sat = 600_000
+    s.channels[0].remote_sat = 400_000
+    s.channels[0].capacity_sat = 1_000_000
+    return s
+
+
+def test_r1_runway_fires_on_drain_despite_healthy_share():
+    snap = _healthy_snapshot()
+    sig = compute_signals(snap)
+    market = _market()
+
+    quiet = recommend(snap, sig, market)  # no trend → no trigger
+    assert not [r for r in quiet.recommendations if r.rule == "R1"]
+
+    # draining 100k/day with 400k inbound → 4 days of runway
+    hot = recommend(snap, sig, market, inbound_trend_sat_per_day=-100_000)
+    r1 = [r for r in hot.recommendations if r.rule == "R1"]
+    assert len(r1) == 1
+    from advisor.recommend import Severity
+    assert r1[0].severity == Severity.HIGH
+    assert r1[0].data["runway_days"] == 4.0
+    assert "days of receive headroom" in r1[0].summary
+
+
+def test_r1_runway_critical_under_3_days():
+    snap = _healthy_snapshot()
+    sig = compute_signals(snap)
+    hot = recommend(snap, sig, _market(),
+                    inbound_trend_sat_per_day=-200_000)  # 2 days
+    r1 = [r for r in hot.recommendations if r.rule == "R1"][0]
+    from advisor.recommend import Severity
+    assert r1.severity == Severity.CRITICAL
+    assert r1.data["runway_days"] == 2.0
+
+
+def test_r1_growing_inbound_stays_quiet():
+    snap = _healthy_snapshot()
+    sig = compute_signals(snap)
+    report = recommend(snap, sig, _market(),
+                       inbound_trend_sat_per_day=+50_000)
+    assert not [r for r in report.recommendations if r.rule == "R1"]
+
+
 def test_r6_baseline_quiet_when_fees_normal():
     snap = _snap()
     market = _market(fee6=2.0, fee144=1.5)
