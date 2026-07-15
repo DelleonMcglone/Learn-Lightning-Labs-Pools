@@ -32,8 +32,7 @@ Build the mental models everything else stands on.
 - [04 — Pool: Auctions & Lease Pricing](./04-pool-auctions-lease-pricing.md) — sealed-bid batch auctions, ppb rates, lease economics
 - [05 — Pool: Observations from Running It Live](./05-pool-observations.md) — theory vs. practice, what only shows up hands-on
 
-**You're done when:** you can explain the liquidity seesaw, convert ppb/block
-to APR without notes, and say why Pool uses a uniform-price sealed-bid auction.
+**You're done when:** you can explain the liquidity seesaw, and say why Pool uses a uniform-price sealed-bid auction.
 
 ### Phase 2 — Environment
 
