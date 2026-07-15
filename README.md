@@ -73,13 +73,13 @@ package that implements it.
 ### Phase 5 — Teach it
 
 Writing is the test of understanding. Three worked examples of turning the
-notes into public articles:
+notes into blog posts:
 
 - [What Is a Lightning Pool?](./writing/what-is-lightning-pool.md) — the liquidity marketplace, explained from zero
 - [How Lightning Liquidity Works](./writing/how-lightning-liquidity-works.md) — inbound vs. outbound, the channel seesaw
 - [How Pool Solves Inbound Liquidity](./writing/how-pool-solves-inbound-liquidity.md) — premium vs. principal, why the market works
 
-**You're done when:** you've published an explanation of one concept, in your
+**You're done when:** you've published an explanation of one concept in your
 own words, that a newcomer can follow.
 
 ### Phase 6 — Build & contribute
