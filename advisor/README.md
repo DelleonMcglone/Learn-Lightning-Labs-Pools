@@ -13,7 +13,7 @@ command for each action; you run it. It cannot move funds.
 > **Status: stable MVP** (spec milestones M0–M5 complete, 64 tests across 7
 > suites, user flows and failure modes tested live against a testnet
 > lnd + poold + loopd stack). Design record: [SPEC.md](./SPEC.md) ·
-  LLM corpus: [knowledge/](./knowledge/).
+> LLM corpus: [knowledge/](./knowledge/).
 
 ---
 

@@ -92,7 +92,7 @@ for what you break against.
   deterministic signal and recommendation engines, a Claude advisory layer
   with a privacy filter and number contract, ingestion history with
   trend-aware rules, a CLI and a local web UI with grounded chat.
-  [Spec](./advisor/SPEC.md) · [Demo script](./advisor/DEMO.md)
+  [Spec](./advisor/SPEC.md)
 - **Upstream contributions** — real examples produced by this guide's path:
   - [faraday#247](https://github.com/lightninglabs/faraday/pull/247) — docs:
     clarify bitcoind connection config (closes maintainer-triaged

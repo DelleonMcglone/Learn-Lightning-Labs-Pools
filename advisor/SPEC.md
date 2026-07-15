@@ -266,7 +266,7 @@ each milestone is independently demoable.
 | **M2 — Market + fees** | Pool/Loop/mempool collectors feeding `MarketState` + `FeeEnvironment` | Snapshot includes live Pool rates, Loop quotes, and mempool fees |
 | **M3 — Recommendation engine** | Deterministic rules R1–R7 with computed economics + commands (no LLM yet) | `advisor recommend --offline` emits ranked recs with real numbers + commands |
 | **M4 — LLM advisor** | Claude layer: prioritize + explain in plain language; privacy filter on inputs | `advisor recommend` produces plain-language ranked report; no sensitive data in the prompt (tested) |
-| **M5 — CLI polish + demo** | `typer`/`rich` UX, config, testnet end-to-end run, README, **demo video** | Full run on the testnet node recorded; repo published |
+| **M5 — CLI polish + demo** | `typer`/`rich` UX, config, testnet end-to-end run, README | Full run on the testnet node verified; repo published |
 | **M6 — Stretch** | Watch-mode, web dashboard, config profiles, more rules | — |
 
 **MVP = M0–M5.** M2 is pulled early (not deferred) because the locked data-source
@@ -279,7 +279,7 @@ an add-on.
   accurate economics.
 - A non-expert can act on a recommendation using only the emitted command.
 - 100% of displayed figures are code-computed and unit-tested (no LLM arithmetic).
-- Recorded demo + published repo suitable for a Lightning Labs contributor pitch.
+- Published repo suitable for a Lightning Labs contributor pitch.
 
 ---
 
@@ -330,8 +330,9 @@ vs. the plan, in the order they happened:
 - **Success metrics**: figures 100% code-computed and tested ✓; actionable
   commands emitted ✓ (the testnet node yields 1 correct CRITICAL rec — its
   real state warrants exactly that; the ≥3-recommendation target reflects a
-  richer node and is demonstrated in the rule test-suite instead);
-  demo video pending (script in [DEMO.md](./DEMO.md)).
+  richer node and is demonstrated in the rule test-suite instead). The
+  demo-video deliverable was dropped — the repo itself (tests + live-run
+  transcripts in the commit history) is the demonstration.
 
 ---
 
