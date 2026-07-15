@@ -218,8 +218,7 @@ rate, not your quote, so shading a bid only risks non-execution.
 3. **Mechanism-design fluency is the pitch.** Being able to articulate *why*
    uniform-price sealed-bid was the right format for this market — thin
    liquidity, repeat participants, front-running risk — is what distinguishes a
-   contributor pitch. The design rhymes with Mantua: turning liquidity
-   provisioning into a priced, term-structured market rather than ad-hoc
+   contributor pitch. Turning liquidity provisioning into a priced, term-structured market rather than ad-hoc
    capital allocation.
 
 ---
