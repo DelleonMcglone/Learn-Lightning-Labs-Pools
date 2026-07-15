@@ -223,7 +223,6 @@ modes). No test touches the network.
 ```
 advisor/
 ├── SPEC.md                  design record (+ §10 as-built)
-├── DEMO.md                  5-minute demo walkthrough
 ├── knowledge/               curated corpus the LLM layer loads
 ├── proto/lightning.proto    vendored lnd proto (v0.19.0-beta)
 ├── scripts/gen_proto.sh     regenerate gRPC stubs
