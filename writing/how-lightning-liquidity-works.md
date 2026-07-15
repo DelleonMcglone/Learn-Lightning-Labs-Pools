@@ -167,6 +167,6 @@ Lightning Labs documentation. Related tools:
 
 ---
 
-_Part of [Lightning Labs Prep](../README.md). Study notes behind this article:
+_Part of [Learn Lightning Labs Pools](../README.md). Study notes behind this article:
 [03 — Lightning Liquidity](../03-lightning-liquidity.md). Companion article:
 [What Is a Lightning Pool?](./what-is-lightning-pool.md)._

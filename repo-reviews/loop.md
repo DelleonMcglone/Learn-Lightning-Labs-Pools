@@ -259,6 +259,6 @@ path exercises the real server handshake, terms, and fee computation.)*
 
 ---
 
-_Part of [Lightning Labs Prep](../README.md). Reviewed at tag `v0.33.3-beta`;
+_Part of [Learn Lightning Labs Pools](../README.md). Reviewed at tag `v0.33.3-beta`;
 workflows tested live against `test.swap.lightning.today`. Companion:
 [Pool review](./pool.md), [LND review](./lnd.md)._

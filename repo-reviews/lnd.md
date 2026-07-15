@@ -300,5 +300,5 @@ RPC layer decoupled and mockable.
 
 ---
 
-_Part of [Lightning Labs Prep](../README.md). Reviewed at tag `v0.19.0-beta`.
+_Part of [Learn Lightning Labs Pools](../README.md). Reviewed at tag `v0.19.0-beta`.
 Companion: [Pool repo review](./pool.md), [LND setup](../setup/lnd.md)._

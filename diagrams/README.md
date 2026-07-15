@@ -1,6 +1,6 @@
 # Diagrams
 
-Concept diagrams for the [Lightning Labs Prep](../README.md) notes — liquidity,
+Concept diagrams for the [Learn Lightning Labs Pools](../README.md) notes — liquidity,
 auctions, and architecture. Each is a self-contained SVG that renders directly on
 GitHub.
 

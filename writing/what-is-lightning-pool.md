@@ -200,6 +200,6 @@ by Olaoluwa Osuntokun, Lightning Labs.
 
 ---
 
-_Part of [Lightning Labs Prep](../README.md). Study notes behind this article:
+_Part of [Learn Lightning Labs Pools](../README.md). Study notes behind this article:
 [04 — Pool: Auctions & Lease Pricing](../04-pool-auctions-lease-pricing.md) and
 [05 — Pool: Observations from Running It Live](../05-pool-observations.md)._

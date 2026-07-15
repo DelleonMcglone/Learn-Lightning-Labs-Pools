@@ -279,4 +279,4 @@ channel, then transact freely off-chain, and settle once at the end.
 
 ---
 
-_Part of [Lightning Labs Prep](./README.md). Next: [02 — Lightning Fundamentals](./02-lightning-fundamentals.md)._
+_Part of [Learn Lightning Labs Pools](./README.md). Next: [02 — Lightning Fundamentals](./02-lightning-fundamentals.md)._

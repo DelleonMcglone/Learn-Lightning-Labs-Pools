@@ -276,6 +276,6 @@ account opened as `ACCOUNT_VERSION_TAPROOT_V2` — the v2 MuSig2 (RC2 spec) path
 
 ---
 
-_Part of [Lightning Labs Prep](../README.md). Reviewed at tag `v0.7.1-beta`.
+_Part of [Learn Lightning Labs Pools](../README.md). Reviewed at tag `v0.7.1-beta`.
 Companion notes: [04 — Auctions & Lease Pricing](../04-pool-auctions-lease-pricing.md),
 [05 — Observations from Running It Live](../05-pool-observations.md)._

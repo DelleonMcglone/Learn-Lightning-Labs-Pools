@@ -161,5 +161,5 @@ Running Pool sharpened three design points from
 
 ---
 
-_Part of [Lightning Labs Prep](./README.md). Previous:
+_Part of [Learn Lightning Labs Pools](./README.md). Previous:
 [04 — Pool: Auctions & Lease Pricing](./04-pool-auctions-lease-pricing.md)._

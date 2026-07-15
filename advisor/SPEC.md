@@ -335,7 +335,7 @@ vs. the plan, in the order they happened:
 
 ---
 
-_Part of [Lightning Labs Prep](../README.md). This is the design record; the
+_Part of [Learn Lightning Labs Pools](../README.md). This is the design record; the
 implementation lives in [/advisor](./) (split into its own repo may follow).
 Grounded in the [source reviews](../README.md#source-code-analysis) of Pool,
 LND, Loop, and Faraday._

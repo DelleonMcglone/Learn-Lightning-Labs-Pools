@@ -263,6 +263,6 @@ lncli closechannel --force 83b5a55b21255915dbc0d005230b2c026a004c839edaa716247b9
 
 ---
 
-_Part of [Lightning Labs Prep](./README.md). Previous:
+_Part of [Learn Lightning Labs Pools](./README.md). Previous:
 [01 — Bitcoin Fundamentals](./01-bitcoin-fundamentals.md). Next:
 [03 — Lightning Liquidity](./03-lightning-liquidity.md)._

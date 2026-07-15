@@ -199,6 +199,6 @@ emit a recommend-only report — is Faraday's, and it's proven.
 
 ---
 
-_Part of [Lightning Labs Prep](../README.md). Reviewed at tag `v0.2.16-alpha`.
+_Part of [Learn Lightning Labs Pools](../README.md). Reviewed at tag `v0.2.16-alpha`.
 Companion: [Pool](./pool.md), [LND](./lnd.md), [Loop](./loop.md) — this completes
 the four-repo source-analysis set._

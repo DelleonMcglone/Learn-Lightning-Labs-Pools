@@ -244,7 +244,7 @@ advisor/
 
 ---
 
-_Part of [Lightning Labs Prep](../README.md). Built on the mechanics
+_Part of [Learn Lightning Labs Pools](../README.md). Built on the mechanics
 documented in the repo's [study notes](../README.md#foundations) and
 [source reviews](../README.md#source-code-analysis) (Pool, LND, Loop,
 Faraday — Faraday's recommend-only engine is the architectural blueprint).

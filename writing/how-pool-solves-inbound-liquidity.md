@@ -157,7 +157,7 @@ Lightning Labs.
 
 ---
 
-_Part of [Lightning Labs Prep](../README.md). The series:
+_Part of [Learn Lightning Labs Pools](../README.md). The series:
 [What Is a Lightning Pool?](./what-is-lightning-pool.md) ·
 [How Lightning Liquidity Works](./how-lightning-liquidity-works.md) · this post.
 Study notes behind it:
